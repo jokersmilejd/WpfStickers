@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Newtonsoft.Json;
+using System.ComponentModel;
 
 namespace WpfStickers
 {
@@ -79,9 +80,25 @@ namespace WpfStickers
             labelSpeed.Content = "Загрузка завершена.";
             labelPercent.Content = null;
 
-            labelSpeed.Content = "Идет парсинг.";
+            //labelSpeed.Content = "Идет парсинг.";
+            //await items.ParceCsv(items.Db);
+            //labelSpeed.Content = "Парсинг завершен.";
+            BackgroundWorker bw = new BackgroundWorker();
+            bw.ProgressChanged += Bw_ProgressChanged;
+            bw.DoWork += Bw_DoWork;
+        }
+
+        private async void Bw_DoWork(object sender, DoWorkEventArgs e)
+        {
+            //0throw new NotImplementedException();
             await items.ParceCsv(items.Db);
-            labelSpeed.Content = "Парсинг завершен.";
+        }
+
+        private void Bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            //throw new NotImplementedException();
+            testProgressBar.Value = e.ProgressPercentage;
+            labelPercent.Content = e.ProgressPercentage.ToString() + "%";
         }
 
         private void testButton_Click(object sender, RoutedEventArgs e)
