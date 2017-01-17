@@ -14,16 +14,21 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Newtonsoft.Json;
-using System.ComponentModel;
+using MahApps.Metro.Controls;
+using System.Threading;
 
 namespace WpfStickers
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : MetroWindow
     {
+        WebClient wc;
         CurrentItems items;
+        string st = "items_730_1484574578.csv";
+        CancellationTokenSource cts;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -31,32 +36,50 @@ namespace WpfStickers
 
         private async void ShowButton_Click(object sender, RoutedEventArgs e)
         {
-            showButton.IsEnabled = false;
-            testProgressBar.Minimum = 0;
-            testProgressBar.Maximum = 100;
 
-
-            using (var wc = new WebClient())
+            if (showButton.Content.Equals("Cancel"))
             {
-                string jsonItems = await wc.DownloadStringTaskAsync(new Uri("https://market.csgo.com/itemdb/current_730.json"));
-                items = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<CurrentItems>(jsonItems));
-
-                wc.DownloadProgressChanged += Wc_DownloadProgressChanged;
-                wc.DownloadFileCompleted += Wc_DownloadFileCompletedAsync;
-
-                try
+                if (wc.IsBusy)
                 {
-                    wc.DownloadFileAsync(new Uri($"https://market.csgo.com/itemdb/{items.Db}"), $"c:/Users/UBI-Note/Downloads/{items.Db}");
+                    wc.CancelAsync();
                 }
-                catch (Exception ex)
+                else
                 {
-                    MessageBox.Show(ex.Message);
-                    MessageBox.Show(items.Db);
+                    //cts.Cancel();        
                 }
+            }
+            else
+            {
+                showButton.Content = "Cancel";
+                testProgressBar.Minimum = 0;
+                testProgressBar.Maximum = 100;
 
-                //labelSpeed.Content = "Идет парсинг.";
-                //await items.ParceCsv(items.Db);
-                //labelSpeed.Content = "Парсинг завершен.";
+
+                using (wc = new WebClient())
+                {
+                    try
+                    {
+                        string jsonItems = await wc.DownloadStringTaskAsync(new Uri("https://market.csgo.com/itemdb/current_730.json"));
+                        items = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<CurrentItems>(jsonItems));
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                    }
+
+                    wc.DownloadProgressChanged += Wc_DownloadProgressChanged;
+                    wc.DownloadFileCompleted += Wc_DownloadFileCompletedAsync;
+
+                    try
+                    {
+                        wc.DownloadFileAsync(new Uri($"https://market.csgo.com/itemdb/{items.Db}"), $"c:/Users/UBI-Note/Downloads/{items.Db}");
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                    }
+
+                }
             }
         }
 
@@ -74,43 +97,81 @@ namespace WpfStickers
 
         private async void Wc_DownloadFileCompletedAsync(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
         {
-            //throw new NotImplementedException();
-            showButton.IsEnabled = true;
-            testProgressBar.Value = 0;
-            labelSpeed.Content = "Загрузка завершена.";
-            labelPercent.Content = null;
 
-            //labelSpeed.Content = "Идет парсинг.";
-            //await items.ParceCsv(items.Db);
-            //labelSpeed.Content = "Парсинг завершен.";
-            BackgroundWorker bw = new BackgroundWorker();
-            bw.ProgressChanged += Bw_ProgressChanged;
-            bw.DoWork += Bw_DoWork;
-        }
-
-        private async void Bw_DoWork(object sender, DoWorkEventArgs e)
-        {
-            //0throw new NotImplementedException();
-            await items.ParceCsv(items.Db);
-        }
-
-        private void Bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
-        {
-            //throw new NotImplementedException();
-            testProgressBar.Value = e.ProgressPercentage;
-            labelPercent.Content = e.ProgressPercentage.ToString() + "%";
-        }
-
-        private void testButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (testLabel.Content.Equals(""))
+            if (e.Cancelled == false)
             {
-                testLabel.Content = "Magic!";
+                testProgressBar.Value = 0;
+                labelSpeed.Content = "Загрузка завершена.";
+                labelPercent.Content = null;
+
+                labelSpeed.Content = "Идет парсинг.";
+                testProgressBar.IsIndeterminate = true;
+                //await items.ParceCsv(items.Db, cts.Token);
+                testProgressBar.IsIndeterminate = false;
+                labelSpeed.Content = "Парсинг завершен.";
+                showButton.Content = "Download";
             }
             else
             {
-                testLabel.Content = "";
+                labelSpeed.Content = "Загрузка отменена.";
+                showButton.Content = "Download";
             }
+
+        }
+
+        private async void testButton_Click(object sender, RoutedEventArgs e)
+        {
+            //if (testLabel.Content.Equals(""))
+            //{
+            //    testLabel.Content = "Magic!";
+            //}
+            //else
+            //{
+            //    testLabel.Content = "";
+            //}
+
+            if (!testButton.Content.Equals("Stop"))
+            {
+                cts = new CancellationTokenSource();
+            }
+            else
+            {
+                cts.Cancel();
+            }
+
+            testButton.Content = "Stop";
+
+            using (wc = new WebClient())
+            {
+                    string jsonItems = await wc.DownloadStringTaskAsync(new Uri("https://market.csgo.com/itemdb/current_730.json"));
+                    items = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<CurrentItems>(jsonItems));
+                    items.Db = st;
+            }
+
+            labelSpeed.Content = "Идет парсинг.";
+            testProgressBar.IsIndeterminate = true;
+
+            try
+            {
+                await items.ParceCsv(st, cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                labelSpeed.Content = "Парсинг отменен.";
+            }
+            catch (Exception)
+            {
+                labelSpeed.Content = "Ошибка при парсинге.";
+            }
+            finally
+            {
+                cts.Dispose();
+            }
+
+            testProgressBar.IsIndeterminate = false;
+            //labelSpeed.Content = "Парсинг завершен.";
+
+            testButton.Content = "Parse";
         }
 
         

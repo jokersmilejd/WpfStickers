@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Threading;
 
 namespace WpfStickers
 {
@@ -11,11 +12,13 @@ namespace WpfStickers
     {
         public string Db { get; set; }
 
-        public Task ParceCsv(string nameCsv)
+        public Task ParceCsv(string nameCsv, CancellationToken token)
         {
 
             return Task.Factory.StartNew(() => 
             {
+                token.ThrowIfCancellationRequested();
+
                 string[] values = File.ReadAllLines($"c:/Users/UBI-Note/Downloads/{nameCsv}");
 
                 var query = from line in values
@@ -29,12 +32,20 @@ namespace WpfStickers
                                 price = Double.Parse(data[2]) / 100
                             };
 
-                using (var file = new StreamWriter(@"D:\listStickers.txt"))
+
+                using (StreamWriter file = new StreamWriter(@"D:\listStickers.txt"))
                 {
                     foreach (var item in query)
                     {
-                        Console.WriteLine($"{item.price}\t{item.name}\t{item.sticker}");
-                        file.WriteLine($"{item.price}\t{item.name}\t{item.sticker}");
+                        if (token.IsCancellationRequested)
+                        {
+                            file.Close();
+                            break;
+                        }
+                        else
+                        {
+                            file.WriteLine($"{item.price}\t{item.name}\t{item.sticker}");
+                        }
                     }
                 }
 
@@ -57,7 +68,7 @@ namespace WpfStickers
 
                     return false;
                 }
-            });
+            }, token);
         }
     }
 }
