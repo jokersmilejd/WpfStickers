@@ -12,12 +12,11 @@ namespace WpfStickers
     {
         public string Db { get; set; }
 
-        public Task ParceCsv(string nameCsv, CancellationToken token)
+        public Task ParceCsv(string nameCsv)
         {
 
             return Task.Factory.StartNew(() => 
             {
-                token.ThrowIfCancellationRequested();
 
                 string[] values = File.ReadAllLines($"c:/Users/UBI-Note/Downloads/{nameCsv}");
 
@@ -37,15 +36,7 @@ namespace WpfStickers
                 {
                     foreach (var item in query)
                     {
-                        if (token.IsCancellationRequested)
-                        {
-                            file.Close();
-                            break;
-                        }
-                        else
-                        {
-                            file.WriteLine($"{item.price}\t{item.name}\t{item.sticker}");
-                        }
+                        file.WriteLine($"{item.price}\t{item.name}\t{item.sticker}");
                     }
                 }
 
@@ -68,7 +59,7 @@ namespace WpfStickers
 
                     return false;
                 }
-            }, token);
+            });
         }
     }
 }

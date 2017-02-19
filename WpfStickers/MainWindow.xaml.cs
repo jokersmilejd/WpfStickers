@@ -27,7 +27,6 @@ namespace WpfStickers
         WebClient wc;
         CurrentItems items;
         string st = "items_730_1484574578.csv";
-        CancellationTokenSource cts;
 
         public MainWindow()
         {
@@ -106,7 +105,7 @@ namespace WpfStickers
 
                 labelSpeed.Content = "Идет парсинг.";
                 testProgressBar.IsIndeterminate = true;
-                //await items.ParceCsv(items.Db, cts.Token);
+                await items.ParceCsv(items.Db);
                 testProgressBar.IsIndeterminate = false;
                 labelSpeed.Content = "Парсинг завершен.";
                 showButton.Content = "Download";
@@ -117,63 +116,6 @@ namespace WpfStickers
                 showButton.Content = "Download";
             }
 
-        }
-
-        private async void testButton_Click(object sender, RoutedEventArgs e)
-        {
-            //if (testLabel.Content.Equals(""))
-            //{
-            //    testLabel.Content = "Magic!";
-            //}
-            //else
-            //{
-            //    testLabel.Content = "";
-            //}
-
-            if (!testButton.Content.Equals("Stop"))
-            {
-                cts = new CancellationTokenSource();
-            }
-            else
-            {
-                cts.Cancel();
-            }
-
-            testButton.Content = "Stop";
-
-            using (wc = new WebClient())
-            {
-                    string jsonItems = await wc.DownloadStringTaskAsync(new Uri("https://market.csgo.com/itemdb/current_730.json"));
-                    items = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<CurrentItems>(jsonItems));
-                    items.Db = st;
-            }
-
-            labelSpeed.Content = "Идет парсинг.";
-            testProgressBar.IsIndeterminate = true;
-
-            try
-            {
-                await items.ParceCsv(st, cts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                labelSpeed.Content = "Парсинг отменен.";
-            }
-            catch (Exception)
-            {
-                labelSpeed.Content = "Ошибка при парсинге.";
-            }
-            finally
-            {
-                cts.Dispose();
-            }
-
-            testProgressBar.IsIndeterminate = false;
-            //labelSpeed.Content = "Парсинг завершен.";
-
-            testButton.Content = "Parse";
-        }
-
-        
+        }      
     }
 }
