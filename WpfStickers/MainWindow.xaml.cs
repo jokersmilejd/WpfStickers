@@ -26,7 +26,8 @@ namespace WpfStickers
     {
         WebClient wc;
         CurrentItems items;
-        string st = "items_730_1484574578.csv";
+        string st;
+        string jsonItems;
         CancellationTokenSource cts;
 
         public MainWindow()
@@ -59,7 +60,7 @@ namespace WpfStickers
                 {
                     try
                     {
-                        string jsonItems = await wc.DownloadStringTaskAsync(new Uri("https://market.csgo.com/itemdb/current_730.json"));
+                        jsonItems = await wc.DownloadStringTaskAsync(new Uri("https://market.csgo.com/itemdb/current_730.json"));
                         items = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<CurrentItems>(jsonItems));
                     }
                     catch (Exception ex)
@@ -106,7 +107,7 @@ namespace WpfStickers
 
                 labelSpeed.Content = "Идет парсинг.";
                 testProgressBar.IsIndeterminate = true;
-                //await items.ParceCsv(items.Db, cts.Token);
+                await items.ParceCsv(items.Db, cts.Token);
                 testProgressBar.IsIndeterminate = false;
                 labelSpeed.Content = "Парсинг завершен.";
                 showButton.Content = "Download";
@@ -141,12 +142,12 @@ namespace WpfStickers
 
             testButton.Content = "Stop";
 
-            using (wc = new WebClient())
-            {
-                    string jsonItems = await wc.DownloadStringTaskAsync(new Uri("https://market.csgo.com/itemdb/current_730.json"));
-                    items = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<CurrentItems>(jsonItems));
-                    items.Db = st;
-            }
+            //using (wc = new WebClient())
+            //{
+            //    string jsonItems = await wc.DownloadStringTaskAsync(new Uri("https://market.csgo.com/itemdb/current_730.json"));
+            //    items = await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<CurrentItems>(jsonItems));
+            //    st = items.Db;
+            //}
 
             labelSpeed.Content = "Идет парсинг.";
             testProgressBar.IsIndeterminate = true;
@@ -159,9 +160,9 @@ namespace WpfStickers
             {
                 labelSpeed.Content = "Парсинг отменен.";
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                labelSpeed.Content = "Ошибка при парсинге.";
+                labelSpeed.Content = "Ошибка при парсинге. " + ex;
             }
             finally
             {
@@ -169,7 +170,7 @@ namespace WpfStickers
             }
 
             testProgressBar.IsIndeterminate = false;
-            //labelSpeed.Content = "Парсинг завершен.";
+            labelSpeed.Content = "Парсинг завершен.";
 
             testButton.Content = "Parse";
         }
