@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using Newtonsoft.Json;
 using MahApps.Metro.Controls;
 using System.Threading;
+using System.Data;
 
 namespace WpfStickers
 {
@@ -26,11 +27,13 @@ namespace WpfStickers
     {
         WebClient wc;
         CurrentItems items;
-        string st = "items_730_1484574578.csv";
+        //string st = "items_730_1484574578.csv";
 
         public MainWindow()
         {
             InitializeComponent();
+            buttonShow.Visibility = Visibility.Hidden;
+
         }
 
         private async void ShowButton_Click(object sender, RoutedEventArgs e)
@@ -105,10 +108,14 @@ namespace WpfStickers
 
                 labelSpeed.Content = "Идет парсинг.";
                 testProgressBar.IsIndeterminate = true;
-                await items.ParceCsv(items.Db);
+                Table t1 = new Table();
+                await items.ParceCsv(items.Db, t1);
+                t1.datagridStickersList.ItemsSource = Table.dtable.DefaultView;
                 testProgressBar.IsIndeterminate = false;
                 labelSpeed.Content = "Парсинг завершен.";
                 showButton.Content = "Download";
+                buttonShow.Visibility = Visibility.Visible;
+                t1.Show();
             }
             else
             {
@@ -116,6 +123,13 @@ namespace WpfStickers
                 showButton.Content = "Download";
             }
 
-        }      
+        }
+
+        private void buttonShow_Click(object sender, RoutedEventArgs e)
+        {
+            Table t = new Table();
+            t.datagridStickersList.ItemsSource = Table.dtable.DefaultView;
+            t.Show();
+        }
     }
 }
