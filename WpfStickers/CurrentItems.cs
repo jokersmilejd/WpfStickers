@@ -12,16 +12,11 @@ namespace WpfStickers
     class CurrentItems
     {
         public string Db { get; set; }
-        public Dictionary<string, string> stickersD = new Dictionary<string, string>();
-        
+        private Dictionary<string, string> stickersD = new Dictionary<string, string>();
 
         public Task ParceCsv(string nameCsv, Table table)
         {
-            char[] separatingChars = { '\r', '\n' };
-            string strIsSticker = Resource1.Stikers2;
-            string[] idStickers = strIsSticker.Split(separatingChars, StringSplitOptions.RemoveEmptyEntries);
-
-            return Task.Factory.StartNew(() => 
+            return Task.Factory.StartNew(() =>
             {
                 MyDictionary();
                 table.CreateTable();
@@ -30,69 +25,62 @@ namespace WpfStickers
 
                 var query = from line in values
                             let data = line.Split(';')
-                            where isSticker(data[9])
+                            where isSticker(data[9]) != null
                             orderby Double.Parse(data[2]) / 100
                             select new
                             {
                                 name = data[10],
-                                sticker = data[9],
+                                sticker = isSticker(data[9]),
                                 price = Double.Parse(data[2]) / 100
                             };
 
-
-                //using (StreamWriter file = new StreamWriter(@"D:\listStickers.txt"))
-                //{
-                    foreach (var item in query)
-                    {
-                        foreach (var dict in stickersD)
-                        {
-                            if (item.sticker.Equals(dict.Key))
-                            {
-                                //file.WriteLine($"{item.price}\t{item.name}\t{dict.Value}");
-                                table.AddToTable(item.price, item.name, dict.Value);
-                            }
-                        }
-                    }
-
-                //return table;
-                //}
-
-                bool isSticker(string st)
+                foreach (var item in query)
                 {
+                    if (!(item.sticker == null))
+                    {
+                        table.AddToTable(item.price, item.name, item.sticker);
+                    }
+                }
+
+                string isSticker(string st)
+                {
+                    string strNameStick = null;
+
                     if (st.Equals("0") || st.Equals("c_stickers"))
                     {
-                        return false;
+                        return null;
                     }
 
-                    else
-                    {
-                        for (int i = 0; i < idStickers.Length; i++)
-                        {
-                            string[] stSplit = st.Split('|');
+                    string[] stSplit = st.Split('|');
 
-                            foreach (var item in stSplit)
+                    foreach (var stSpl in stSplit)
+                    {
+                        foreach (var itemPair in stickersD)
+                        {
+                            if (stSpl.Equals(itemPair.Key))
                             {
-                                if (item.Equals(idStickers[i]))
-                                {
-                                    return true;
-                                }
+                                strNameStick += itemPair.Value + " ";
                             }
                         }
-
-                        return false; 
                     }
+
+                    if (strNameStick != null)
+                    {
+                        return strNameStick;
+                    }
+                    else return null;
                 }
             });
         }
 
-        private void MyDictionary()
+        private void MyDictionary()     //заполняет словарь значениями key = id стикера, value - имя 
         {
             string str = Resource1.Stikers;
             string[] stickers = str.Split('\n');
             for (int i = 0; i < stickers.Length; i++)
             {
-                string[] stSplit = stickers[i].Split(';');
-                stickersD.Add(stSplit[0], stSplit[1]);
+                string[] stsplit = stickers[i].Split(';');
+                stickersD.Add(stsplit[0], stsplit[1]);
             }
         }
     }
