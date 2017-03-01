@@ -36,6 +36,16 @@ namespace WpfStickers
             //column.ReadOnly = true;
             dtable.Columns.Add(column);
 
+            column = new DataColumn("Мин цена");
+            column.DataType = Type.GetType("System.Double");
+            //column.ReadOnly = true;
+            dtable.Columns.Add(column);
+
+            column = new DataColumn("Разница");
+            column.DataType = Type.GetType("System.Double");
+            //column.ReadOnly = true;
+            dtable.Columns.Add(column);
+
             column = new DataColumn("Название");
             //column.ReadOnly = true;
             dtable.Columns.Add(column);
@@ -46,12 +56,14 @@ namespace WpfStickers
 
         }
 
-        public void AddToTable(double price, string name, string stickName)
+        public void AddToTable(double price, double minPrice, string name, string stickName)
         {
             row = dtable.NewRow();
             row[0] = price;
-            row[1] = name;
-            row[2] = stickName;
+            row[1] = minPrice;
+            row[2] = price - minPrice;
+            row[3] = name;
+            row[4] = stickName;
             dtable.Rows.Add(row);
         }
     }

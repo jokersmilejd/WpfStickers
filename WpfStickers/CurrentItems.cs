@@ -31,14 +31,15 @@ namespace WpfStickers
                             {
                                 name = data[10],
                                 sticker = isSticker(data[9]),
-                                price = Double.Parse(data[2]) / 100
+                                price = Double.Parse(data[2]) / 100,
+                                minPrice = CheckMinPrice(data[10], values)
                             };
 
                 foreach (var item in query)
                 {
-                    if (!(item.sticker == null))
+                    if (item.sticker != null)
                     {
-                        table.AddToTable(item.price, item.name, item.sticker);
+                        table.AddToTable(item.price, item.minPrice, item.name, item.sticker);
                     }
                 }
 
@@ -82,6 +83,17 @@ namespace WpfStickers
                 string[] stsplit = stickers[i].Split(';');
                 stickersD.Add(stsplit[0], stsplit[1]);
             }
+        }
+
+        private double CheckMinPrice(string nameSticker, string[] values)
+        {
+            var query = from line in values
+                        let data = line.Split(';')
+                        where data[10].Equals(nameSticker)
+                        orderby Double.Parse(data[2]) / 100
+                        select Double.Parse(data[2]) / 100;
+
+            return query.First();
         }
     }
 }
