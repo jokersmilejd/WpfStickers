@@ -46,6 +46,11 @@ namespace WpfStickers
             //column.ReadOnly = true;
             dtable.Columns.Add(column);
 
+            column = new DataColumn("Процент %");
+            column.DataType = Type.GetType("System.Double");
+            //column.ReadOnly = true;
+            dtable.Columns.Add(column);
+
             column = new DataColumn("Название");
             //column.ReadOnly = true;
             dtable.Columns.Add(column);
@@ -62,9 +67,16 @@ namespace WpfStickers
             row[0] = price;
             row[1] = minPrice;
             row[2] = price - minPrice;
-            row[3] = name;
-            row[4] = stickName;
+            row[3] = RoundPercent();
+            row[4] = name;
+            row[5] = stickName;
             dtable.Rows.Add(row);
+
+            double RoundPercent()
+            {
+                double perc = minPrice / (price / 100);
+                return Math.Round(perc, 2);
+            }
         }
     }
 }

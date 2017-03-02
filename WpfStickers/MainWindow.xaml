@@ -12,7 +12,7 @@
         <Label x:Name="testLabel" Content="" HorizontalAlignment="Left" Margin="416,15,-176,0" VerticalAlignment="Top" Width="52"/>
         <Label x:Name="labelPercent" Content="" HorizontalAlignment="Left" Margin="100,104,0,0" VerticalAlignment="Top" Width="100" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
         <Label x:Name="labelSpeed" Content="" HorizontalAlignment="Left" Margin="50,133,0,0" VerticalAlignment="Top" Width="200" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-        <Label x:Name="labelDownloaded" Content="" Margin="50,165,0,0" Height="26" VerticalAlignment="Top" HorizontalAlignment="Left" Width="200" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+        <Label x:Name="labelDownloaded" Content="" Margin="50,165,0,0" Height="26" VerticalAlignment="Top" HorizontalAlignment="Left" Width="175" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
         <Button x:Name="buttonShow" Content="Show" HorizontalAlignment="Left" Margin="207,164,0,0" VerticalAlignment="Top" Width="75" Click="buttonShow_Click"/>
     </Grid>
 </Controls:MetroWindow>
